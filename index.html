@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Timbrature</title>
+<meta name="theme-color" content="#0f766e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Timbrature">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+:root{
+  --bg:#f4f5f7;--card:#fff;--ink:#16181d;--muted:#6b7280;--line:#e5e7eb;
+  --accent:#0f766e;--accent-soft:#ccfbf1;--warn:#b45309;--warn-soft:#fef3c7;
+  --bad:#b91c1c;--bad-soft:#fee2e2;--good:#15803d;--good-soft:#dcfce7;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0e1013;--card:#171a1f;--ink:#eef0f3;--muted:#9aa1ad;--line:#262a31;
+  --accent:#2dd4bf;--accent-soft:#0f3b37;--warn:#fbbf24;--warn-soft:#3a2d0c;
+  --bad:#f87171;--bad-soft:#3b1515;--good:#4ade80;--good-soft:#0f2e1b;}
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  -webkit-text-size-adjust:100%}
+.wrap{max-width:520px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 12px) 14px calc(env(safe-area-inset-bottom) + 90px)}
+header{display:flex;align-items:center;justify-content:space-between;margin:4px 2px 12px}
+h1{font-size:20px;margin:0;letter-spacing:-.01em}
+.sync{font-size:12px;color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.datebar{display:flex;align-items:center;gap:8px}
+.datebar button{flex:0 0 40px;height:40px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px}
+.datebar .dlabel{flex:1;text-align:center}
+.dlabel b{display:block;font-size:17px;text-transform:capitalize}
+.dlabel span{font-size:12px;color:var(--muted)}
+.dlabel input{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.hero{text-align:center;padding:22px 16px}
+.hero .lbl{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.hero .big{font-size:56px;font-weight:700;letter-spacing:-.03em;line-height:1.05;margin:4px 0 6px;font-variant-numeric:tabular-nums}
+.hero .sub{font-size:15px;color:var(--muted)}
+.pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.pill.good{background:var(--good-soft);color:var(--good)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.neu{background:var(--accent-soft);color:var(--accent)}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:14px 0 4px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .3s}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px}
+.stat{background:var(--bg);border-radius:12px;padding:10px 6px;text-align:center}
+.stat b{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:var(--muted)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px;font-weight:600}
+.row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row .name{flex:1;font-size:15px}
+.row .name small{display:block;color:var(--muted);font-size:12px}
+input[type=time],input[type=number]{font:inherit;font-size:17px;font-variant-numeric:tabular-nums;
+  padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:112px;text-align:center}
+input[type=number]{width:80px}
+.now{border:0;background:var(--accent-soft);color:var(--accent);font-weight:600;font-size:13px;border-radius:10px;padding:10px 10px;min-width:58px}
+.clr{border:0;background:none;color:var(--muted);font-size:18px;width:26px;padding:0}
+.toggle{display:flex;align-items:center;justify-content:space-between;padding:4px 0 10px}
+.sw{position:relative;width:50px;height:30px;flex:0 0 50px}
+.sw input{opacity:0;width:0;height:0}
+.sw span{position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.2s}
+.sw span:before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.sw input:checked+span{background:var(--accent)}
+.sw input:checked+span:before{transform:translateX(20px)}
+.sub-rows.off{display:none}
+.ot{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.ot div{background:var(--bg);border-radius:10px;padding:8px 4px;text-align:center}
+.ot b{display:block;font-variant-numeric:tabular-nums}
+.ot span{font-size:11px;color:var(--muted)}
+.why{font-size:13px;color:var(--muted);margin:10px 0 0;line-height:1.5}
+.why b{color:var(--ink);font-weight:600}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
+  display:flex;justify-content:center;padding:6px 0 calc(env(safe-area-inset-bottom) + 6px);z-index:5}
+nav button{flex:0 1 170px;border:0;background:none;color:var(--muted);font:inherit;font-size:12px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button svg{width:22px;height:22px}
+nav button.on{color:var(--accent);font-weight:600}
+.view{display:none}.view.on{display:block}
+.hist{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.hist th{font-size:11px;color:var(--muted);text-align:left;font-weight:600;text-transform:uppercase;padding:0 4px 6px}
+.hist td{padding:10px 4px;border-top:1px solid var(--line)}
+.hist tr.click{cursor:pointer}
+.hist td:last-child,.hist th:last-child{text-align:right}
+.monthsel{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.monthsel b{text-transform:capitalize}
+.monthsel button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:40px;height:36px;font-size:16px}
+.summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:10px 14px;font:inherit;font-size:14px}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (prefers-color-scheme:dark){.btn.pri{color:#04201d}}
+.empty{color:var(--muted);text-align:center;padding:20px 0;font-size:14px}
+.note{font-size:12px;color:var(--muted);margin-top:8px}
+textarea{width:100%;height:120px;font:12px ui-monospace,Menlo,monospace;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px;margin-top:10px}
+.dayname{font-size:12px;color:var(--muted);text-transform:capitalize}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Timbrature</h1>
+  </header>
+
+  <!-- OGGI -->
+  <section class="view on" id="v-oggi">
+    <div class="card" style="text-align:center;padding:12px"><b id="dtitle" style="text-transform:capitalize"></b></div>
+
+    <div class="card hero">
+      <div class="lbl" id="heroLbl">Uscita teorica</div>
+      <div class="big" id="heroBig">--:--</div>
+      <div class="sub" id="heroSub">Inserisci l'ora di ingresso</div>
+      <div class="bar"><i id="prog" style="width:0"></i></div>
+      <div class="stats">
+        <div class="stat"><b id="sWorked">0:00</b><span id="sWorkedL">lavorate</span></div>
+        <div class="stat"><b id="sTarget">8:00</b><span>da fare</span></div>
+        <div class="stat"><b id="sPause">0:00</b><span>pause conteggiate</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Timbrature</h2>
+      <div id="rowsMain"></div>
+      <div class="toggle" style="border-top:1px solid var(--line);padding-top:12px;margin-top:4px">
+        <span class="name">Pausa caffè</span>
+        <label class="sw"><input type="checkbox" id="caffe"><span></span></label>
+      </div>
+      <div class="sub-rows" id="rowsCaffe"></div>
+      <div style="text-align:right;margin-top:10px"><button class="btn" id="reset">Azzera giornata</button></div>
+    </div>
+
+    <div class="card">
+      <h2>Straordinario</h2>
+      <div class="ot" id="ot"></div>
+      <p class="why" id="why"></p>
+    </div>
+  </section>
+
+
+  <!-- REGOLE -->
+  <section class="view" id="v-regole">
+    <div class="card">
+      <h2>Orario</h2>
+      <div class="row"><span class="name">Inizio conteggio<small>Prima di quest'ora non conta</small></span><input type="time" id="r-inizio"></div>
+      <div class="row"><span class="name">Soglia ingresso<small>Entro quest'ora: pranzo minimo lungo</small></span><input type="time" id="r-soglia"></div>
+      <div class="row"><span class="name">Pranzo minimo entro soglia<small>minuti</small></span><input type="number" id="r-pmin1" min="0" max="180"></div>
+      <div class="row"><span class="name">Pranzo minimo dopo soglia<small>minuti</small></span><input type="number" id="r-pmin2" min="0" max="180"></div>
+    </div>
+    <div class="card">
+      <h2>Ore per giorno</h2>
+      <div id="rDays"></div>
+    </div>
+    <div class="card">
+      <h2>Come calcola</h2>
+      <p class="why" style="margin:0">
+        <b>Uscita teorica</b> = max(ingresso, inizio conteggio) + ore del giorno + pranzo conteggiato + pausa caffè.<br>
+        <b>Pranzo conteggiato</b> = il pranzo reale, ma mai meno del minimo (dipende se sei entrato entro la soglia).<br>
+        <b>Ore lavorate</b> = uscita − ingresso conteggiato − pranzo conteggiato − caffè.<br>
+        Sono le stesse formule del tuo Excel.
+      </p>
+      <p class="note">Gli orari di oggi restano finché non li azzeri; il giorno dopo ripartono da zero.</p>
+    </div>
+  </section>
+</div>
+
+<nav>
+  <button class="on" data-v="oggi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Oggi</button>
+  <button data-v="regole"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Regole</button>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const $=id=>document.getElementById(id);
+const DAYS_IT=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+const DEFAULT_RULES={inizio:"08:00",soglia:"08:30",pmin1:60,pmin2:30,ore:{1:8,2:8,3:8,4:8,5:7,6:0,0:0}};
+const FIELDS_MAIN=[["in","Ingresso"],["po","Uscita pranzo"],["pr","Rientro pranzo"],["out","Uscita","effettiva"]];
+const FIELDS_CAFFE=[["co","Uscita caffè"],["cr","Rientro caffè"]];
+
+let rules=JSON.parse(JSON.stringify(DEFAULT_RULES));
+let days={};            // "YYYY-MM-DD" -> {in,po,pr,co,cr,out,caffe}
+let cur=todayKey();
+
+/* ---------- time helpers ---------- */
+function toMin(s){ if(!s) return null; const m=/^(\d{1,2}):(\d{2})/.exec(s); return m? (+m[1])*60+(+m[2]) : null; }
+function fmt(m){ if(m==null||isNaN(m)) return "--:--"; m=Math.round(m); const neg=m<0; m=Math.abs(m); return (neg?"−":"")+Math.floor(m/60)+":"+String(m%60).padStart(2,"0"); }
+function fmtClock(m){ if(m==null) return "--:--"; m=((Math.round(m)%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); }
+function fmtSigned(m){ if(m==null) return "—"; return (m>0?"+":"")+fmt(m); }
+function nowMin(){ const d=new Date(); return d.getHours()*60+d.getMinutes(); }
+function nowStr(){ return fmtClock(nowMin()); }
+function todayKey(){ const d=new Date(); return keyOf(d); }
+function keyOf(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dateOf(k){ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); }
+function shift(k,n){ const d=dateOf(k); d.setDate(d.getDate()+n); return keyOf(d); }
+function targetFor(k){ const v=rules.ore[dateOf(k).getDay()]; return (v==null?8:+v)*60; }
+
+/* ---------- core calc (same logic as the Excel) ---------- */
+function calc(k, d, live){
+  d=d||{};
+  const r={target:targetFor(k)};
+  const tin=toMin(d.in); if(tin==null) return r;
+  const start=Math.max(tin,toMin(rules.inizio));
+  const minLunch=(start<=toMin(rules.soglia)?+rules.pmin1:+rules.pmin2);
+  const po=toMin(d.po), pr=toMin(d.pr), co=toMin(d.co), cr=toMin(d.cr), out=toMin(d.out);
+  const lunchReal=(po!=null&&pr!=null)? Math.max(0,pr-po) : null;
+  const lunchCounted=Math.max(lunchReal||0,minLunch);
+  const coffee=(d.caffe&&co!=null&&cr!=null)? Math.max(0,cr-co) : 0;
+  r.start=start; r.minLunch=minLunch; r.lunchReal=lunchReal; r.lunchCounted=lunchCounted; r.coffee=coffee;
+  r.late=Math.max(0,tin-toMin(rules.inizio));
+  r.exitTheo=start+r.target+lunchCounted+coffee;
+  if(out!=null){
+    r.worked=out-start-lunchCounted-coffee;
+    r.saldo=r.worked-r.target; r.final=true;
+  } else if(live){
+    const n=nowMin();
+    let lunchSoFar=0;
+    if(po!=null && pr!=null) lunchSoFar=lunchCounted;
+    else if(po!=null && n>po) lunchSoFar=n-po;
+    let coffeeSoFar=0;
+    if(d.caffe && co!=null){ coffeeSoFar = cr!=null ? coffee : Math.max(0,n-co); }
+    r.worked=Math.max(0,n-start-lunchSoFar-coffeeSoFar);
+    r.remaining=r.exitTheo-n;
+  }
+  return r;
+}
+
+/* ---------- render: Oggi ---------- */
+function buildRows(){
+  const mk=(list,host)=>{
+    host.innerHTML="";
+    list.forEach(([f,label,small])=>{
+      const row=document.createElement("div"); row.className="row";
+      row.innerHTML='<span class="name">'+label+(small?'<small>'+small+'</small>':'')+'</span>'+
+        '<input type="time" data-f="'+f+'"><button class="now" data-now="'+f+'">Ora</button>'+
+        '<button class="clr" data-clr="'+f+'" aria-label="Cancella">×</button>';
+      host.appendChild(row);
+    });
+  };
+  mk(FIELDS_MAIN,$("rowsMain")); mk(FIELDS_CAFFE,$("rowsCaffe"));
+  document.querySelectorAll("input[data-f]").forEach(inp=>{
+    inp.addEventListener("change",()=>setField(inp.dataset.f,inp.value));
+  });
+  document.querySelectorAll("[data-now]").forEach(b=>b.addEventListener("click",()=>setField(b.dataset.now,nowStr())));
+  document.querySelectorAll("[data-clr]").forEach(b=>b.addEventListener("click",()=>setField(b.dataset.clr,"")));
+  $("caffe").addEventListener("change",e=>setField("caffe",e.target.checked));
+}
+function setField(f,v){
+  const d=Object.assign({},days[cur]||{});
+  if(v===""||v===false) delete d[f]; else d[f]=v;
+  days[cur]=d;
+  renderDay(); queueSave();
+}
+function renderDay(){
+  const d=days[cur]||{};
+  const dt=dateOf(cur), isToday=cur===todayKey();
+  $("dtitle").textContent=dt.toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"});
+  document.querySelectorAll("input[data-f]").forEach(inp=>{ const v=d[inp.dataset.f]||""; if(inp.value!==v) inp.value=v; });
+  $("caffe").checked=!!d.caffe;
+  $("rowsCaffe").classList.toggle("off",!d.caffe);
+
+  const r=calc(cur,d,isToday);
+  $("sTarget").textContent=fmt(r.target);
+  if(r.exitTheo==null){
+    $("heroLbl").textContent=r.target?"Uscita teorica":"Giorno libero";
+    $("heroBig").textContent="--:--";
+    $("heroSub").textContent=r.target?"Inserisci l'ora di ingresso":"Nessuna ora prevista per questo giorno";
+    $("sWorked").textContent="0:00"; $("sPause").textContent="0:00"; $("prog").style.width="0";
+    $("ot").innerHTML=""; $("why").textContent=""; return;
+  }
+  $("sPause").textContent=fmt(r.lunchCounted+r.coffee);
+  if(r.final){
+    $("heroLbl").textContent="Ore lavorate";
+    $("heroBig").textContent=fmt(r.worked);
+    const cls=r.saldo>=0?"good":"bad";
+    $("heroSub").innerHTML='Uscita teorica '+fmtClock(r.exitTheo)+' · <span class="pill '+cls+'">'+fmtSigned(r.saldo)+'</span>';
+    $("sWorked").textContent=fmt(r.worked); $("sWorkedL").textContent="lavorate";
+  } else {
+    $("heroLbl").textContent="Uscita teorica";
+    $("heroBig").textContent=fmtClock(r.exitTheo);
+    if(isToday && r.remaining!=null){
+      $("heroSub").innerHTML = r.remaining>0
+        ? 'Mancano <span class="pill neu">'+fmt(r.remaining)+'</span>'
+        : 'Puoi uscire · <span class="pill good">'+fmtSigned(-r.remaining)+' extra</span>';
+    } else $("heroSub").textContent="Manca l'ora di uscita";
+    $("sWorked").textContent=r.worked!=null?fmt(r.worked):"—"; $("sWorkedL").textContent=isToday?"finora":"lavorate";
+  }
+  const w=r.worked!=null?r.worked:0;
+  $("prog").style.width=Math.max(0,Math.min(100,r.target?w/r.target*100:0))+"%";
+
+  let html="";
+  for(let i=1;i<=8;i++){ const m=i*30; html+='<div><b>'+fmtClock(r.exitTheo+m)+'</b><span>'+(m%60?Math.floor(m/60)+"h 30":m/60+"h")+'</span></div>'; }
+  $("ot").innerHTML=html.replace(/<span>0h 30<\/span>/,"<span>30 min</span>");
+
+  const parts=[];
+  if(r.late>0) parts.push('Ingresso <b>'+d.in+'</b>: '+r.late+' min da recuperare.');
+  else parts.push('Ingresso conteggiato dalle <b>'+fmtClock(r.start)+'</b>.');
+  if(r.lunchReal!=null){
+    parts.push(r.lunchReal<r.minLunch
+      ? 'Pranzo di '+r.lunchReal+' min, conteggiato <b>'+r.minLunch+' min</b> (minimo: sei entrato '+(r.start<=toMin(rules.soglia)?'entro':'dopo')+' le '+rules.soglia+').'
+      : 'Pranzo conteggiato <b>'+r.lunchCounted+' min</b>.');
+  } else parts.push('Pranzo non ancora timbrato: conteggio il minimo di <b>'+r.minLunch+' min</b>.');
+  if(r.coffee) parts.push('Caffè <b>'+r.coffee+' min</b> da recuperare.');
+  $("why").innerHTML=parts.join(" ");
+}
+
+/* ---------- render: Regole ---------- */
+function buildRules(){
+  const host=$("rDays"); host.innerHTML="";
+  [1,2,3,4,5,6,0].forEach(i=>{
+    const row=document.createElement("div"); row.className="row";
+    row.innerHTML='<span class="name" style="text-transform:capitalize">'+DAYS_IT[i]+'</span><input type="number" min="0" max="12" step="0.5" data-day="'+i+'"><span style="color:var(--muted);font-size:13px">ore</span>';
+    host.appendChild(row);
+  });
+  const bind=(id,key,num)=>$(id).addEventListener("change",e=>{ rules[key]=num?Number(e.target.value)||0:e.target.value||DEFAULT_RULES[key]; afterRules(); });
+  bind("r-inizio","inizio"); bind("r-soglia","soglia"); bind("r-pmin1","pmin1",1); bind("r-pmin2","pmin2",1);
+  host.querySelectorAll("input[data-day]").forEach(inp=>inp.addEventListener("change",()=>{ rules.ore[inp.dataset.day]=Number(inp.value)||0; afterRules(); }));
+}
+function renderRules(){
+  $("r-inizio").value=rules.inizio; $("r-soglia").value=rules.soglia; $("r-pmin1").value=rules.pmin1; $("r-pmin2").value=rules.pmin2;
+  document.querySelectorAll("input[data-day]").forEach(inp=>inp.value=rules.ore[inp.dataset.day]);
+}
+function afterRules(){ renderDay(); persist(); }
+
+/* ---------- navigation ---------- */
+function show(v){
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("on",s.id==="v-"+v));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("nav button").forEach(b=>b.addEventListener("click",()=>show(b.dataset.v)));
+
+/* ---------- saving: solo la giornata di oggi + regole ---------- */
+const K="timbrature-oggi-v1";
+let saveT=null;
+function persist(){ try{ localStorage.setItem(K,JSON.stringify({day:cur,data:days[cur]||{},rules})); }catch(e){} }
+function queueSave(){ persist(); }
+function load(){
+  try{ const o=JSON.parse(localStorage.getItem(K)||"null");
+    if(o){ if(o.rules) rules=Object.assign(JSON.parse(JSON.stringify(DEFAULT_RULES)),o.rules);
+           if(o.day===todayKey()) days[o.day]=o.data||{}; }   // giorno vecchio: si azzera
+  }catch(e){}
+}
+function newDayCheck(){ const t=todayKey(); if(t!==cur){ cur=t; days={}; persist(); } }
+function renderAll(){ renderRules(); renderDay(); }
+
+$("reset").addEventListener("click",()=>{ days[cur]={}; persist(); renderDay(); });
+
+load(); buildRows(); buildRules(); renderAll();
+setInterval(()=>{ newDayCheck(); renderDay(); },30000);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ newDayCheck(); renderDay(); } });
+if("serviceWorker" in navigator){ window.addEventListener("load",()=>{ navigator.serviceWorker.register("sw.js").catch(()=>{}); }); }
+})();
+</script>
+</body>
+</html>
